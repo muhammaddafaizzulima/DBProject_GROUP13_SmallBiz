@@ -77,6 +77,7 @@ CREATE TABLE Transaction_Detail
   Unit_Price INT NOT NULL,
   Product_ID INT NOT NULL,
   Transaction_ID INT NOT NULL,
+  PRIMARY KEY (Transaction_ID, Product_ID),
   FOREIGN KEY (Product_ID) REFERENCES Products(Product_ID),
   FOREIGN KEY (Transaction_ID) REFERENCES Transaction(Transaction_ID)
 );
@@ -88,6 +89,7 @@ CREATE TABLE Purchase_Detail
   SubTotal INT NOT NULL,
   Purchase_ID INT NOT NULL,
   Product_ID INT NOT NULL,
+  PRIMARY KEY (Purchase_ID, Product_ID),
   FOREIGN KEY (Purchase_ID) REFERENCES Purchase(Purchase_ID),
   FOREIGN KEY (Product_ID) REFERENCES Products(Product_ID)
 );
