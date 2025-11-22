@@ -1,106 +1,20 @@
+// CUSTOMER ROUTES
+
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const customerController = require('../controllers/customerController');
+const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
+// All authenticated users can view
+router.get('/', authenticateToken, customerController.getAllCustomers);
+router.get('/search/:query', authenticateToken, customerController.searchCustomers);
+router.get('/:id', authenticateToken, customerController.getCustomerById);
 
-// ============================
-//  GET ALL CUSTOMERS
-// ============================
-router.get('/', (req, res) => {
-  db.query('SELECT * FROM Customer', (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(results);
-  });
-});
+// All roles can create/update customers (cashiers need this for POS)
+router.post('/', authenticateToken, customerController.createCustomer);
+router.put('/:id', authenticateToken, customerController.updateCustomer);
 
-
-// ============================
-//  GET CUSTOMER BY ID
-// ============================
-router.get('/:id', (req, res) => {
-  const id = req.params.id;
-
-  db.query(
-    'SELECT * FROM Customer WHERE Customer_ID = ?',
-    [id],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err });
-
-      if (results.length === 0) {
-        return res.status(404).json({ message: 'Customer not found' });
-      }
-
-      res.json(results[0]);
-    }
-  );
-});
-
-
-// ============================
-//  CREATE CUSTOMER (POST)
-// ============================
-router.post('/', (req, res) => {
-  const { Name, Phone, Email, Address } = req.body;
-
-  db.query(
-    `INSERT INTO customer (Name, Phone, Email, Address) 
-     VALUES (?, ?, ?, ?)`,
-    [Name, Phone, Email, Address],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err });
-
-      res.json({
-        message: 'Customer created',
-        customerId: result.insertId
-      });
-    }
-  );
-});
-
-
-// ============================
-//  UPDATE CUSTOMER (PUT)
-// ============================
-router.put('/:id', (req, res) => {
-  const id = req.params.id;
-  const { Name, Phone, Email, Address } = req.body;
-
-  db.query(
-    `UPDATE customer 
-     SET Name=?, Phone=?, Email=?, Address=? 
-     WHERE Customer_ID=?`,
-    [Name, Phone, Email, Address, id],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err });
-
-      if (result.affectedRows === 0)
-        return res.status(404).json({ message: 'Customer not found' });
-
-      res.json({ message: 'Customer updated' });
-    }
-  );
-});
-
-
-// ============================
-//  DELETE CUSTOMER
-// ============================
-router.delete('/:id', (req, res) => {
-  const id = req.params.id;
-
-  db.query(
-    'DELETE FROM customer WHERE Customer_ID = ?',
-    [id],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err });
-
-      if (result.affectedRows === 0)
-        return res.status(404).json({ message: 'Customer not found' });
-
-      res.json({ message: 'Customer deleted' });
-    }
-  );
-});
-
+// Admin & Manager only can delete
+router.delete('/:id', authenticateToken, authorizeRole(['Admin', 'Manager']), customerController.deleteCustomer);
 
 module.exports = router;

@@ -1,63 +1,16 @@
+// SUPPLIER ROUTES
+
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const supplierController = require('../controllers/supplierController');
+const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
-// CREATE Supplier
-router.post('/', (req, res) => {
-  const { Name, Contact, Address } = req.body;
-
-  const query = `
-    INSERT INTO supplier (Name, Contact, Address)
-    VALUES (?, ?, ?)
-  `;
-
-  db.query(query, [Name, Contact, Address], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ 
-      message: 'Supplier created successfully', 
-      Supplier_ID: result.insertId 
-    });
-  });
-});
-
-// READ all suppliers
-router.get('/', (req, res) => {
-  db.query('SELECT * FROM supplier', (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(results);
-  });
-});
-
-// READ supplier by ID
-router.get('/:id', (req, res) => {
-  db.query('SELECT * FROM supplier WHERE Supplier_ID = ?', [req.params.id], (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(results[0]);
-  });
-});
-
-// UPDATE supplier
-router.put('/:id', (req, res) => {
-  const { Name, Contact, Address } = req.body;
-
-  const query = `
-    UPDATE supplier
-    SET Name = ?, Contact = ?, Address = ?
-    WHERE Supplier_ID = ?
-  `;
-
-  db.query(query, [Name, Contact, Address, req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ message: 'Supplier updated successfully' });
-  });
-});
-
-// DELETE supplier
-router.delete('/:id', (req, res) => {
-  db.query('DELETE FROM supplier WHERE Supplier_ID = ?', [req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ message: 'Supplier deleted successfully' });
-  });
-});
+// Admin & Manager only
+router.get('/', authenticateToken, authorizeRole(['Admin', 'Manager']), supplierController.getAllSuppliers);
+router.get('/search/:query', authenticateToken, authorizeRole(['Admin', 'Manager']), supplierController.searchSuppliers);
+router.get('/:id', authenticateToken, authorizeRole(['Admin', 'Manager']), supplierController.getSupplierById);
+router.post('/', authenticateToken, authorizeRole(['Admin', 'Manager']), supplierController.createSupplier);
+router.put('/:id', authenticateToken, authorizeRole(['Admin', 'Manager']), supplierController.updateSupplier);
+router.delete('/:id', authenticateToken, authorizeRole(['Admin']), supplierController.deleteSupplier);
 
 module.exports = router;

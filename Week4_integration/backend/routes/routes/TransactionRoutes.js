@@ -1,46 +1,20 @@
-const express = require("express");
-const db = require("../db");
+// TRANSACTION ROUTES
+
+const express = require('express');
 const router = express.Router();
+const transactionController = require('../controllers/transactionController');
+const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
-router.get("/", (req, res) => {
-  db.query("SELECT * FROM Transaction", (err, result) => {
-    if (err) throw err;
-    res.json(result);
-  });
-});
+// All authenticated users can view
+router.get('/', authenticateToken, transactionController.getAllTransactions);
+router.get('/date-range', authenticateToken, transactionController.getTransactionsByDateRange);
+router.get('/:id', authenticateToken, transactionController.getTransactionById);
+router.get('/:id/details', authenticateToken, transactionController.getTransactionDetails);
 
-router.get("/:id", (req, res) => {
-  db.query("SELECT * FROM Transaction WHERE Transaction_ID = ?", 
-  [req.params.id], 
-  (err, result) => {
-    if (err) throw err;
-    res.json(result[0]);
-  });
-});
+// All roles can create transactions (cashiers need this!)
+router.post('/create', authenticateToken, transactionController.createTransaction);
 
-router.post("/", (req, res) => {
-  db.query("INSERT INTO Transaction SET ?", req.body, (err) => {
-    if (err) throw err;
-    res.json({ message: "Transaction created" });
-  });
-});
-
-router.put("/:id", (req, res) => {
-  db.query("UPDATE Transaction SET ? WHERE Transaction_ID = ?", 
-  [req.body, req.params.id], 
-  (err) => {
-    if (err) throw err;
-    res.json({ message: "Transaction updated" });
-  });
-});
-
-router.delete("/:id", (req, res) => {
-  db.query("DELETE FROM Transaction WHERE Transaction_ID = ?", 
-  [req.params.id], 
-  (err) => {
-    if (err) throw err;
-    res.json({ message: "Transaction deleted" });
-  });
-});
+// Admin & Manager can cancel
+router.put('/:id/cancel', authenticateToken, authorizeRole(['Admin', 'Manager']), transactionController.cancelTransaction);
 
 module.exports = router;
