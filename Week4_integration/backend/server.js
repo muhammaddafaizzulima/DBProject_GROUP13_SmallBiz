@@ -39,7 +39,6 @@ const customerRoutes = require('./routes/customerRoutes');
 const supplierRoutes = require('./routes/supplierRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const purchaseRoutes = require('./routes/purchaseRoutes');
-const reportRoutes = require('./routes/reportRoutes');
 
 // ============================================
 // REGISTER ROUTES
@@ -52,7 +51,6 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/purchases', purchaseRoutes);
-app.use('/api/reports', reportRoutes);
 
 // ============================================
 // ROOT ENDPOINT
